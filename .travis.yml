@@ -1,4 +1,4 @@
 language: java
-script: ant -Dplatforms.JDK_1.8.home=$HOME/openjdk8 test
+script: ant -Dplatforms.JDK_1.8.home=$(dirname $(dirname $(readlink -f $(which javac)))) test
 jdk:
 - oraclejdk8

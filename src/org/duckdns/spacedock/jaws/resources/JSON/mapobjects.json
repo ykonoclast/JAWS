@@ -1,0 +1,17 @@
+{
+    "Shipstats": [
+	{
+	    "type": "Terran CL",
+	    "curve": [3, 3, 1]
+	}, {
+	    "type": "Terran DD",
+	    "curve": [2, 3, 1]
+	}, {
+	    "type": "Talon DD",
+	    "curve": [1, 3, 0]
+	}, {
+	    "type": "Talon FF",
+	    "curve": [2, 3, 0]
+	}
+    ]
+}

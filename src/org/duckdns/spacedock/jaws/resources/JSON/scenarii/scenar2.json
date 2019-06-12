@@ -1,0 +1,34 @@
+{
+    "Terran ships": [{
+	    "type": "Terran CL",
+	    "name": "Thor",
+	    "posX": 1,
+	    "posY": 10,
+	    "orientation": "SW"
+	}, {
+	    "type": "Terran DD",
+	    "name": "Caleb",
+	    "posX": 3,
+	    "posY": 10,
+	    "orientation": "SW"
+	}],
+    "Talon ships": [{
+	    "type": "Talon FF",
+	    "name": "Surprise",
+	    "posX": 6,
+	    "posY": 0,
+	    "orientation": "NE"
+	}, {
+	    "type": "Talon DD",
+	    "name": "Hunter",
+	    "posX": 7,
+	    "posY": 0,
+	    "orientation": "NE"
+	}, {
+	    "type": "Talon DD",
+	    "name": "Shadow",
+	    "posX": 8,
+	    "posY": 0,
+	    "orientation": "NE"
+	}]
+}

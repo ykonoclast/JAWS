@@ -1,0 +1,21 @@
+{
+    "listimpulses": [{
+	    "impulse": "A",
+	    "curve": [4, 5, 6]
+	}, {
+	    "impulse": "B",
+	    "curve": [3, 5, 6]
+	}, {
+	    "impulse": "C",
+	    "curve": [2, 4, 5, 6]
+	}, {
+	    "impulse": "D",
+	    "curve": [3, 4, 5, 6]
+	}, {
+	    "impulse": "E",
+	    "curve": [6]
+	}, {
+	    "impulse": "F",
+	    "curve": [1, 2, 3, 4, 5, 6]
+	}]
+}

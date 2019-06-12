@@ -1,4 +1,4 @@
 language: java
 script: ant -Dplatforms.JDK_1.8.home=$HOME/openjdk8 test
 jdk:
-- openjdk8
+- oraclejdk8

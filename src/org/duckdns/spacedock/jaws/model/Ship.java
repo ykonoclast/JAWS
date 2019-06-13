@@ -45,6 +45,84 @@ public class Ship extends MapObject
 	m_powerCurve = m_mapObjectDao.getPowerCurve(p_type);
     }
 
+    /**
+     * avance un cran dans la même direction
+     */
+    public void moveStraight()
+    {
+	transformPos(getCoordinates().orientation);
+    }
+
+    /**
+     * avance d'un cran et modifie l'orientation du vaisseau dans la direction
+     * donnée
+     *
+     * @param p_orientation
+     */
+    public void turn(Orientation p_orientation)
+    {
+	if (canTurn(p_orientation))//tolérance d'erreur : rejet silencieux de l'ordre si invalide
+	{
+	    transformPos(p_orientation);
+	}
+    }
+
+    /**
+     * effectue la transofrmation de la position du vaisseau en fonction de
+     * l'orientation fournie en paramétre (avance de 1 hex dans cette direction)
+     *
+     * @param p_orienOrientation
+     */
+    private void transformPos(Orientation p_orientation)
+    {
+	int curL = m_coordinates.posL;
+	int curC = m_coordinates.posC;
+	switch (p_orientation)
+	{
+	    case NE:
+		m_coordinates = new HexCoordinates(curL - 1, curC, p_orientation);
+		break;
+	    case E:
+		m_coordinates = new HexCoordinates(curL, curC + 1, p_orientation);
+		break;
+	    case SE:
+		m_coordinates = new HexCoordinates(curL + 1, curC + 1, p_orientation);
+		break;
+	    case SW:
+		m_coordinates = new HexCoordinates(curL + 1, curC, p_orientation);
+		break;
+	    case W:
+		m_coordinates = new HexCoordinates(curL, curC - 1, p_orientation);
+		break;
+	    case NW:
+		m_coordinates = new HexCoordinates(curL - 1, curC - 1, p_orientation);
+		break;
+	}
+    }
+
+    /**
+     *
+     * @param p_orientation
+     * @return vrai si le vaisseau peut actuellement effectuer un virage dans la
+     * direction indiquée (uniquement les deux bords adjacents à sa direction
+     * actuelle)
+     */
+    public boolean canTurn(Orientation p_orientation)
+    {
+	boolean result = false;
+	if (m_coordinates.orientation.equals(p_orientation.next()) || m_coordinates.orientation.equals(p_orientation.previous()))
+	{
+	    //TODO ajouter gestion des marqueurs virages
+	    result = true;
+	}
+
+	return result;
+    }
+
+    /**
+     *
+     * @return
+     */
     public PowerCurve getPowerCurve()
     {
 	return m_powerCurve;//on peut renvoyer la PowerCurve sans crainte de modification : c'est un objet imutable de toute façon
@@ -160,7 +238,5 @@ public class Ship extends MapObject
 	{
 	    return Objects.hash(power, speed, turnRadius);
 	}
-
     }
-
 }

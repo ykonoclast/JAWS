@@ -42,7 +42,7 @@ public abstract class MapObject
     /**
      * coordonnés sur l'hexmap
      */
-    final MapObject.HexCoordinates m_coordinates;
+    MapObject.HexCoordinates m_coordinates;
 
     /**
      * type de l'objet, pour affichage et récupération des caracs dans la
@@ -54,6 +54,21 @@ public abstract class MapObject
      * DAO d'accès aux fichiers de configuration pour créer des objets
      */
     final MapObjectDao m_mapObjectDao;
+
+    /**
+     * calcule la distance en hexagones entre deux centre d'hexagones
+     *
+     * @param p_a
+     * @param p_b
+     * @return
+     */
+    public static int getDistancePROVISOIRE(HexCoordinates p_a, HexCoordinates p_b)//TODO réutiliser ce code ailleurs de façon objet (par exemple dans les objets d'attaque) plutôt qu'ávec un méthode statique dégueulasse au milieu
+    {
+	int deltaL = p_a.posL - p_b.posL;
+	int deltaC = p_a.posC - p_b.posC;
+	int deltaDelta = deltaL - deltaC;
+	return Math.max(Math.abs(deltaDelta), Math.max(Math.abs(deltaL), Math.abs(deltaC)));
+    }
 
     /**
      * constructeur, accès package uniquement, ce sont les sous-classes qui
@@ -87,7 +102,7 @@ public abstract class MapObject
      */
     public MapObject.HexCoordinates getCoordinates()
     {
-	return new MapObject.HexCoordinates(m_coordinates.posX, m_coordinates.posY, m_coordinates.orientation);//copie, pas de possibilité de modifier la position de l'éxtérieur
+	return new MapObject.HexCoordinates(m_coordinates.posL, m_coordinates.posC, m_coordinates.orientation);//copie, pas de possibilité de modifier la position de l'éxtérieur
     }
 
     /**
@@ -118,7 +133,7 @@ public abstract class MapObject
 	{
 	    if (o != null && getClass() == o.getClass())
 	    {
-		if (toString().equals(o.toString()) && getCoordinates().equals(((Ship) o).getCoordinates()))//l'ID n'est PAS considéré : il constitue une identité, pas une égalité
+		if (toString().equals(o.toString()) && getCoordinates().equals(((MapObject) o).getCoordinates()))//l'ID n'est PAS considéré : il constitue une identité, pas une égalité
 		{
 		    result = true;
 
@@ -143,7 +158,36 @@ public abstract class MapObject
      */
     public enum Orientation
     {
-	NE, E, SE, SW, W, NW
+	NE
+	{
+	    @Override
+	    public Orientation previous()
+	    {//override de ce qui est plus loin uniquement pour cette valeur
+		return values()[5]; // retour à NW dans le cas du premier élément
+	    }
+
+	}, E, SE, SW, W, NW
+	{
+	    @Override
+	    public Orientation next()
+	    {//override de ce qui est plus loin uniquement pour cette valeur
+		return values()[0]; // retour à NE dans le cas du dernier élément
+	    }
+
+	};
+
+	public Orientation next()
+	{
+	    // pas besoin de checker si on est au dernier, l'override ci-dessus gère cela
+	    return values()[ordinal() + 1];
+	}
+
+	public Orientation previous()
+	{
+	    // pas besoin de checker si on est au premier, l'override ci-dessus gère cela
+	    return values()[ordinal() - 1];
+	}
+
     }
 
     /**
@@ -153,15 +197,34 @@ public abstract class MapObject
     public static class HexCoordinates
     {
 
-	public final int posX;
-	public final int posY;
+	public final int posL;
+	public final int posC;
 	public final Orientation orientation;
+	//TODO enrichier avec position du marqueur virage ET peut-être mettre dans Ship une classe HÉRITANT de celle-ci et intégrant l'orientation et le marqueur virage, laissant les simples coordonnées à la classe de base
 
-	public HexCoordinates(int p_posX, int p_posY, Orientation p_orientation)
+	/**
+	 * constructeur permettant de spécifier l'orientation
+	 *
+	 * @param p_posL
+	 * @param p_posC
+	 * @param p_orientation
+	 */
+	public HexCoordinates(int p_posL, int p_posC, Orientation p_orientation)
 	{
-	    posX = p_posX;
-	    posY = p_posY;
+	    posL = p_posL;
+	    posC = p_posC;
 	    orientation = p_orientation;
+	}
+
+	/**
+	 * constructeur avec orientation par défaut NE
+	 *
+	 * @param p_posL
+	 * @param p_posC
+	 */
+	public HexCoordinates(int p_posL, int p_posC)
+	{
+	    this(p_posL, p_posC, Orientation.NE);
 	}
 
 	/**
@@ -182,7 +245,7 @@ public abstract class MapObject
 	    {
 		if (o != null && getClass() == o.getClass())
 		{
-		    if (posX == ((HexCoordinates) o).posX && posY == ((HexCoordinates) o).posY && orientation == ((HexCoordinates) o).orientation)
+		    if (posL == ((HexCoordinates) o).posL && posC == ((HexCoordinates) o).posC && orientation == ((HexCoordinates) o).orientation)
 		    {
 			result = true;
 		    }
@@ -198,7 +261,7 @@ public abstract class MapObject
 	@Override
 	public int hashCode()
 	{
-	    return Objects.hash(posX, posY, orientation);
+	    return Objects.hash(posL, posC, orientation);
 	}
     }
 }

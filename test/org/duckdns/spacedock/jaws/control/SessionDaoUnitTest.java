@@ -41,14 +41,14 @@ public class SessionDaoUnitTest
     {
 	List<Ship> terranShipsActual = new ArrayList<>();
 	List<Ship> terranShipsExpected = new ArrayList<>();
-	terranShipsExpected.add(new Ship("Terran CL", "Thor", new MapObject.HexCoordinates(1, 10, MapObject.Orientation.SW)));
-	terranShipsExpected.add(new Ship("Terran DD", "Caleb", new MapObject.HexCoordinates(3, 10, MapObject.Orientation.SW)));
+	terranShipsExpected.add(new Ship("Terran CL", "Thor", new MapObject.HexCoordinates(0, 6, MapObject.Orientation.SW)));
+	terranShipsExpected.add(new Ship("Terran DD", "Caleb", new MapObject.HexCoordinates(0, 8, MapObject.Orientation.SW)));
 
 	List<Ship> talonShipsActual = new ArrayList<>();
 	List<Ship> talonShipsExpected = new ArrayList<>();
-	talonShipsExpected.add(new Ship("Talon FF", "Surprise", new MapObject.HexCoordinates(6, 0, MapObject.Orientation.NE)));
-	talonShipsExpected.add(new Ship("Talon DD", "Hunter", new MapObject.HexCoordinates(7, 0, MapObject.Orientation.NE)));
-	talonShipsExpected.add(new Ship("Talon DD", "Shadow", new MapObject.HexCoordinates(8, 0, MapObject.Orientation.NE)));
+	talonShipsExpected.add(new Ship("Talon FF", "Surprise", new MapObject.HexCoordinates(10, 11, MapObject.Orientation.NE)));
+	talonShipsExpected.add(new Ship("Talon DD", "Hunter", new MapObject.HexCoordinates(10, 12, MapObject.Orientation.NE)));
+	talonShipsExpected.add(new Ship("Talon DD", "Shadow", new MapObject.HexCoordinates(10, 13, MapObject.Orientation.NE)));
 
 	testee.loadScenario("scenar2", talonShipsActual, terranShipsActual);
 

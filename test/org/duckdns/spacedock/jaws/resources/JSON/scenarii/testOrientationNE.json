@@ -2,15 +2,15 @@
     "Terran ships": [{
 	    "type": "Terran CL",
 	    "name": "Thor",
-	    "posX": 1,
-	    "posY": 10,
-	    "orientation": "Un poney déguisé en sapin de Noël, mais que lui est-il donc arrivé?"
+	    "posL": 1,
+	    "posC": 10,
+	    "orientation": "Un poney déguisé en percolateur, mais que lui est-il donc arrivé?"
 	}],
     "Talon ships": [{
 	    "type": "Talon FF",
 	    "name": "Surprise",
-	    "posX": 6,
-	    "posY": 0,
+	    "posL": 6,
+	    "posC": 0,
 	    "orientation": "Mon merveilleux voyage en Biélorussie soviétique"
 	}]
 }

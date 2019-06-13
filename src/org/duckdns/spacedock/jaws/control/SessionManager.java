@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import org.duckdns.spacedock.jaws.model.MapObject;
 import org.duckdns.spacedock.jaws.model.Ship;
 import org.duckdns.spacedock.jaws.model.Ship.PowerCurve;
 
@@ -38,6 +39,18 @@ public class SessionManager
      * ensemble des vaisseaux en jeu, classés par joueur
      */
     private final Map<Player, List<Ship>> m_listShips = new EnumMap<>(Player.class);
+
+    /**
+     * liste des identifiants des vaisseaux pouvant agir durant le tour
+     * d'impulsion en cours
+     */
+    private final ArrayList<Integer> m_canActShips = new ArrayList<>();
+
+    /**
+     * liste des identifiants des vaisseaux devant bouger durant le tour
+     * d'impulsion en cours
+     */
+    private final ArrayList<Integer> m_mustMoveShips = new ArrayList<>();
 
     /**
      * DAO d'accès aux éléments de "partie" : scénarios, sauvegarde du jeu en
@@ -133,12 +146,14 @@ public class SessionManager
     /**
      *
      * @return un ImpulseReport décrivant la situation actuelle sur le plateau
-     * de jeu
+     * de jeu, ATTENTION : n'utiliser qu'en début d'impulsion car sinon la liste
+     * sera réinitialisée sans tenir compte des mouvements et actions effectués.
      */
     private ImpulseReport makeImpulseReport()
     {
-	ArrayList<Integer> canActShips = new ArrayList<>();
-	ArrayList<Integer> mustMoveShips = new ArrayList<>();
+	//reset des listes d'action et de mouvement pour le tour
+	m_canActShips.clear();
+	m_mustMoveShips.clear();
 
 	if (m_currentImpulse != Impulse.POWER)
 	{
@@ -147,12 +162,12 @@ public class SessionManager
 		PowerCurve curve = ship.getPowerCurve();
 		if (m_sessionDao.getCurveByImpulse(m_currentImpulse).contains(curve.power))
 		{//ce vaisseau peut agir durant ce tour
-		    canActShips.add(ship.getId());
+		    m_canActShips.add(ship.getId());
 		}
 		if (m_sessionDao.getCurveByImpulse(m_currentImpulse).contains(curve.speed))
 		{
 		    //ce vaisseau doit bouger durant ce tour
-		    mustMoveShips.add(ship.getId());
+		    m_mustMoveShips.add(ship.getId());
 		}
 	    });
 	}
@@ -160,7 +175,74 @@ public class SessionManager
 	{
 	    //TODO traiter ce cas
 	}
-	return new ImpulseReport(m_currentPlayer.toString(), canActShips, mustMoveShips, m_currentImpulse.toString());
+	return updateImpulseReport();
+    }
+
+    /**
+     *
+     * @return la mise à jour du rapport sans modification des listes de
+     * vaisseaux actifs
+     */
+    private ImpulseReport updateImpulseReport()
+    {
+	return new ImpulseReport(m_currentPlayer.toString(), m_canActShips, m_mustMoveShips, m_currentImpulse.toString());
+    }
+
+    /**
+     * fait avancer un vaisseau tout droit et met à jour le rapport d'impulsion
+     *
+     * @param p_shipId
+     */
+    ImpulseReport moveShipStraight(int p_shipId)
+    {
+	Ship ship = getShipToMove(p_shipId);
+	if (ship != null)
+	{
+	    ship.moveStraight();
+	}
+
+	return updateImpulseReport();
+    }
+
+    /**
+     * fait tourner un vaisseau et met à jour le rapport d'impulsion
+     *
+     * @param p_shipId
+     * @param p_orientation
+     */
+    ImpulseReport turnShip(int p_shipId, MapObject.Orientation p_orientation)
+    {
+	Ship ship = getShipToMove(p_shipId);
+	if (ship != null)
+	{
+	    ship.turn(p_orientation);
+	}
+
+	return updateImpulseReport();
+    }
+
+    /**
+     * vérifie si un vaisseau existe et peut bouger et le renvoie en fonction de
+     * son identifiant
+     *
+     * @param p_shipId
+     * @return null si aucun vaisseau ne correspond aux conditions
+     */
+    private Ship getShipToMove(int p_shipId)
+    {
+	Ship result = null;
+	if (m_mustMoveShips.contains(p_shipId))
+	{
+	    for (Ship ship : m_listShips.get(m_currentPlayer))
+	    {
+		if (ship.getId() == p_shipId)
+		{
+		    result = ship;
+		}
+	    }
+	    m_mustMoveShips.remove(Integer.valueOf(p_shipId));//le vaisseau ne peut plus bouger
+	}//TODO faire quelque sinon ou juste ignorer l'ordre illégal?
+	return result;
     }
 
     /**
@@ -169,7 +251,7 @@ public class SessionManager
      */
     Map<Player, List<Ship>> getAllShips()
     {
-	return new EnumMap<>(m_listShips);
+	return new EnumMap<>(m_listShips);//TODO il vaudrait certainement mieux renvoyer cela comme une partie de l'ImpulseReport
     }
 
     /**
@@ -223,7 +305,6 @@ public class SessionManager
 	    {
 		return values()[0]; // retour à TALON dans le cas du dernier élément
 	    }
-	;
 
 	};
 
@@ -252,7 +333,6 @@ public class SessionManager
 	    {
 		return values()[0]; // retour à A dans le cas du dernier élément
 	    }
-	;
 
 	};
 

@@ -170,8 +170,8 @@ class SessionDao
 	String name = p_object.getString("name");
 	String type = p_object.getString("type");
 
-	int posX = p_object.getInt("posX");
-	int posY = p_object.getInt("posY");
+	int posL = p_object.getInt("posL");
+	int posC = p_object.getInt("posC");
 
 	MapObject.Orientation orientation;
 	String JSONorientation = p_object.getString("orientation");
@@ -199,7 +199,7 @@ class SessionDao
 	    default:
 		orientation = MapObject.Orientation.NE;//tolérance aux erreurs : si l'orientation n'est pas une chaîne conforme, le vaisseau pointe au NE
 	}
-	return new Ship(type, name, new MapObject.HexCoordinates(posX, posY, orientation));
+	return new Ship(type, name, new MapObject.HexCoordinates(posL, posC, orientation));
     }
 
     /**

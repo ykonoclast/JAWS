@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.duckdns.spacedock.jaws.control.SessionManager.Player;
+import org.duckdns.spacedock.jaws.model.MapObject;
 import org.duckdns.spacedock.jaws.model.Ship;
 import org.junit.Assert;
 import org.junit.Before;
@@ -235,5 +236,59 @@ public class SessionManagerIntegTest
 	Assert.assertEquals(SessionManager.Impulse.A.toString(), report.currentImpulse);
 	Assert.assertEquals(0, report.canActShips.size());
 	Assert.assertEquals(0, report.mustMoveShips.size());
+    }
+
+    @Test
+    public void moveTestNominal()
+    {
+	testee.startGame();
+	testee.advanceImpulse();
+	testee.advanceImpulse();
+
+	//on est désormais au premier tour de l'impulsion B, Talon doit jouer donc la Surprise est active
+	int shipTestId = 684674651;
+	Ship shipTest = null;
+
+	for (Ship ship : testee.getAllShips().get(Player.TALON))
+	{
+	    if ("Talon FF Surprise".equals(ship.toString()))
+	    {
+		shipTestId = ship.getId();
+		shipTest = ship;
+	    }
+	}
+
+	//Surprise active, elle peut donc avancer
+	SessionManager.ImpulseReport report = testee.moveShipStraight(shipTestId);
+	MapObject.HexCoordinates coordTest = shipTest.getCoordinates();
+	MapObject.HexCoordinates coordExpected = new MapObject.HexCoordinates(9, 11, MapObject.Orientation.NE);
+	Assert.assertEquals(coordExpected, coordTest);
+	//Surprise a déjà bougé, on ne peut plus la bouger
+	Assert.assertFalse(report.mustMoveShips.contains(shipTestId));
+	testee.moveShipStraight(shipTestId);
+	coordTest = shipTest.getCoordinates();
+	Assert.assertEquals(coordExpected, coordTest);
+
+	//on avance un coup pour faire tourner un vaisseau terrien
+	testee.advanceImpulse();
+
+	for (Ship ship : testee.getAllShips().get(Player.TERRAN))
+	{
+	    if ("Terran DD Caleb".equals(ship.toString()))
+	    {
+		shipTestId = ship.getId();
+		shipTest = ship;
+	    }
+	}
+	//Caleb actif, on le fait tourner
+	report = testee.turnShip(shipTestId, MapObject.Orientation.SE);
+	coordTest = shipTest.getCoordinates();
+	coordExpected = new MapObject.HexCoordinates(1, 9, MapObject.Orientation.SE);
+	Assert.assertEquals(coordExpected, coordTest);
+	//Caleb a déjà bougé, on ne peut plus le bouger
+	Assert.assertFalse(report.mustMoveShips.contains(shipTestId));
+	testee.moveShipStraight(shipTestId);
+	coordTest = shipTest.getCoordinates();
+	Assert.assertEquals(coordExpected, coordTest);
     }
 }

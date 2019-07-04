@@ -187,7 +187,8 @@ public abstract class MapObject
 	    // pas besoin de checker si on est au premier, l'override ci-dessus gère cela
 	    return values()[ordinal() - 1];
 	}
-
+        
+        
     }
 
     /**
@@ -252,7 +253,11 @@ public abstract class MapObject
 		}
 	    }
 	    return result;
-	}
+	
+       
+        
+        
+        }
 
 	/**
 	 *
@@ -263,5 +268,11 @@ public abstract class MapObject
 	{
 	    return Objects.hash(posL, posC, orientation);
 	}
+        
+         @Override
+        public String toString()
+        {
+            return posL+"-"+posC+":"+orientation.toString();
+        }
     }
 }

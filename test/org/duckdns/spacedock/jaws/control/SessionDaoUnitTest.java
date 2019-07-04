@@ -90,27 +90,27 @@ public class SessionDaoUnitTest
     @Test
     public void getCurveByImpulseTestNominal() throws FileNotFoundException
     {
-	List<Integer> result = testee.getCurveByImpulse(SessionManager.Impulse.A);
+	List<Integer> result = testee.getCurveByImpulse(GameManager.Impulse.A);
 	List<Integer> expected = new ArrayList<>(Arrays.asList(4, 5, 6));
 	Assert.assertEquals(expected, result);
 
-	result = testee.getCurveByImpulse(SessionManager.Impulse.B);
+	result = testee.getCurveByImpulse(GameManager.Impulse.B);
 	expected = new ArrayList<>(Arrays.asList(3, 5, 6));
 	Assert.assertEquals(expected, result);
 
-	result = testee.getCurveByImpulse(SessionManager.Impulse.C);
+	result = testee.getCurveByImpulse(GameManager.Impulse.C);
 	expected = new ArrayList<>(Arrays.asList(2, 4, 5, 6));
 	Assert.assertEquals(expected, result);
 
-	result = testee.getCurveByImpulse(SessionManager.Impulse.D);
+	result = testee.getCurveByImpulse(GameManager.Impulse.D);
 	expected = new ArrayList<>(Arrays.asList(3, 4, 5, 6));
 	Assert.assertEquals(expected, result);
 
-	result = testee.getCurveByImpulse(SessionManager.Impulse.E);
+	result = testee.getCurveByImpulse(GameManager.Impulse.E);
 	expected = new ArrayList<>(Arrays.asList(6));
 	Assert.assertEquals(expected, result);
 
-	result = testee.getCurveByImpulse(SessionManager.Impulse.F);
+	result = testee.getCurveByImpulse(GameManager.Impulse.F);
 	expected = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5, 6));
 	Assert.assertEquals(expected, result);
 

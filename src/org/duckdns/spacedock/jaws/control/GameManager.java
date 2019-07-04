@@ -25,6 +25,9 @@ import org.duckdns.spacedock.jaws.model.MapObject;
 import org.duckdns.spacedock.jaws.model.Ship;
 import org.duckdns.spacedock.jaws.model.Ship.PowerCurve;
 
+
+//TODO général : remplacer toutes les émissions d'objets métiers par des strings ou des id, beaucoup trop de couplage en l'état avec la partie web
+
 /**
  * classe gérant les opérations relatives à la partie en cours : initialisation,
  * gestion des tours, des vaisseaux en jeu et interface entre l'UI et les objets
@@ -32,7 +35,7 @@ import org.duckdns.spacedock.jaws.model.Ship.PowerCurve;
  *
  * @author ykonoclast
  */
-public class SessionManager
+public class GameManager
 {
 
     /**
@@ -91,7 +94,7 @@ public class SessionManager
      * référence
      * @throws FileNotFoundException
      */
-    SessionManager(String p_Scenario) throws FileNotFoundException
+    public GameManager(String p_Scenario) throws FileNotFoundException
     {
 	m_sessionDao = SessionDao.getInstance();
 	List<Ship> listTalonShips = new ArrayList<>();
@@ -105,7 +108,7 @@ public class SessionManager
 	m_initHolder = Player.TALON;//par défaut au début de la plupart des scénarii
     }
 
-    ImpulseReport startGame()
+    public ImpulseReport startGame()
     {
 	if (!m_gameStarted)
 	{//sécurité : tous les appels après le premier seront ignorés
@@ -117,7 +120,7 @@ public class SessionManager
 	return makeImpulseReport();
     }
 
-    ImpulseReport advanceImpulse()
+    public ImpulseReport advanceImpulse()
     {
 	//TODO vérifier que tous les mouvements ont été exécutés
 	//TODO tracker où l'on en est du phasage interne au tour : actions, mouvements, tirs sauf pour la power phase
@@ -193,12 +196,13 @@ public class SessionManager
      *
      * @param p_shipId
      */
-    ImpulseReport moveShipStraight(int p_shipId)
+    public ImpulseReport moveShipStraight(int p_shipId)
     {
 	Ship ship = getShipToMove(p_shipId);
 	if (ship != null)
 	{
 	    ship.moveStraight();
+            m_mustMoveShips.remove(Integer.valueOf(p_shipId));//le vaisseau ne peut plus bouger
 	}
 
 	return updateImpulseReport();
@@ -210,14 +214,17 @@ public class SessionManager
      * @param p_shipId
      * @param p_orientation
      */
-    ImpulseReport turnShip(int p_shipId, MapObject.Orientation p_orientation)
+    public ImpulseReport turnShip(int p_shipId, MapObject.Orientation p_orientation)//TODO : remplacer parun paramétre string pour indépendance du métier peut être
     {
 	Ship ship = getShipToMove(p_shipId);
 	if (ship != null)
 	{
-	    ship.turn(p_orientation);
+	    if(ship.canTurn(p_orientation))
+            {
+                ship.turn(p_orientation);
+                m_mustMoveShips.remove(Integer.valueOf(p_shipId));//le vaisseau ne peut plus bouger}
+            }
 	}
-
 	return updateImpulseReport();
     }
 
@@ -240,7 +247,7 @@ public class SessionManager
 		    result = ship;
 		}
 	    }
-	    m_mustMoveShips.remove(Integer.valueOf(p_shipId));//le vaisseau ne peut plus bouger
+	    
 	}//TODO faire quelque sinon ou juste ignorer l'ordre illégal?
 	return result;
     }
@@ -248,8 +255,9 @@ public class SessionManager
     /**
      *
      * @return la liste de tous les vaisseaux en jeu
+     * TODO demande de trop connaitre le modèle métier, remplacer par un couple : string/id
      */
-    Map<Player, List<Ship>> getAllShips()
+    public Map<Player, List<Ship>> getAllShips()
     {
 	return new EnumMap<>(m_listShips);//TODO il vaudrait certainement mieux renvoyer cela comme une partie de l'ImpulseReport
     }
@@ -258,7 +266,7 @@ public class SessionManager
      * sous-classe représentant la situation au début d'un tour de joueur :
      * vaisseaux actifs, situation dans le tour de jeu etc.
      */
-    static class ImpulseReport
+    public static class ImpulseReport
     {//TODO voir si on passe des Strings aux vrais Enum, en fonction de comment marche le vrai serveur
 	//TODO ajouter le numéro du tour
 	//TODO ajouter si on est au tour du joueur ayant l'init ou pas
@@ -296,7 +304,7 @@ public class SessionManager
     /**
      * représentation d'un joueur : talon ou terrien
      */
-    enum Player
+    public enum Player
     {
 	TALON, TERRAN
 	{
@@ -318,7 +326,7 @@ public class SessionManager
     /**
      * liste des impulses, y compris la power phase
      */
-    enum Impulse
+    public enum Impulse
     {
 	A("A"),
 	B("B"),

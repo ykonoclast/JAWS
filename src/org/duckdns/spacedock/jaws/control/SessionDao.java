@@ -29,7 +29,7 @@ import javax.json.JsonValue;
 import org.duckdns.spacedock.jaws.model.MapObject;
 import org.duckdns.spacedock.jaws.model.Ship;
 import org.duckdns.spacedock.commonutils.files.GeneralFileHandler;
-import org.duckdns.spacedock.jaws.control.SessionManager.Impulse;
+import org.duckdns.spacedock.jaws.control.GameManager.Impulse;
 
 /**
  * Classe d'accès aux éléments genéraux d'une partie (scénario joué, sauvegarde
@@ -136,8 +136,8 @@ class SessionDao
      * @param p_scenario nom du fichier (avec ou sans extension, préciser le
      * répertoire si ce n'est pas la racine du répertoire scenarii des
      * resources)
-     * @param p_listTalonShips liste issue du SessionManager, sera remplie ici
-     * @param p_listTerranShips liste issue du SessionManager, sera remplie ici
+     * @param p_listTalonShips liste issue du GameManager, sera remplie ici
+     * @param p_listTerranShips liste issue du GameManager, sera remplie ici
      * @throws FileNotFoundException
      */
     void loadScenario(String p_scenario, List<Ship> p_listTalonShips, List<Ship> p_listTerranShips) throws FileNotFoundException
@@ -209,7 +209,7 @@ class SessionDao
      * dans cette Impulse
      * @throws FileNotFoundException
      */
-    List<Integer> getCurveByImpulse(SessionManager.Impulse p_impulse)
+    List<Integer> getCurveByImpulse(GameManager.Impulse p_impulse)
     {
 	return m_curveByImpulse.get(p_impulse);
     }

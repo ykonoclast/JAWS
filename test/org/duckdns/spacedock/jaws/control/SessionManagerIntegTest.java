@@ -20,7 +20,7 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.duckdns.spacedock.jaws.control.SessionManager.Player;
+import org.duckdns.spacedock.jaws.control.GameManager.Player;
 import org.duckdns.spacedock.jaws.model.MapObject;
 import org.duckdns.spacedock.jaws.model.Ship;
 import org.junit.Assert;
@@ -34,12 +34,12 @@ import org.junit.Test;
 public class SessionManagerIntegTest
 {
 
-    private SessionManager testee;
+    private GameManager testee;
 
     @Before
     public void setUpForEach() throws FileNotFoundException
     {
-	testee = new SessionManager("scenar2");
+	testee = new GameManager("scenar2");
     }
 
     /**
@@ -50,10 +50,10 @@ public class SessionManagerIntegTest
     public void initTestNominal()
     {
 	//commencement de la partie
-	SessionManager.ImpulseReport report = testee.startGame();
+	GameManager.ImpulseReport report = testee.startGame();
 
 	//récupération des id des vaisseaux
-	Map<SessionManager.Player, List<Ship>> allShips = testee.getAllShips();
+	Map<GameManager.Player, List<Ship>> allShips = testee.getAllShips();
 	Map<String, Integer> indShips = new HashMap<>();//map qui va récupérer les indices de tous les vaisseaux du scénar 2
 	Assert.assertEquals(5, allShips.get(Player.TALON).size() + allShips.get(Player.TERRAN).size());
 
@@ -69,21 +69,21 @@ public class SessionManagerIntegTest
 
 	//on est au premier tour de l'impulsion A, le joueur actif est le Talon, aucun vaisseau actif, aucun vaisseau à bouger
 	Assert.assertEquals(Player.TALON.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.A.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.A.toString(), report.currentImpulse);
 	Assert.assertEquals(0, report.canActShips.size());
 	Assert.assertEquals(0, report.mustMoveShips.size());
 
 	//on passe au second tour de l'impulsion A : joueur actif Terran, aucun vaisseau actif, aucun vaisseau à bouger
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TERRAN.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.A.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.A.toString(), report.currentImpulse);
 	Assert.assertEquals(0, report.canActShips.size());
 	Assert.assertEquals(0, report.mustMoveShips.size());
 
 	//on passe au premier tour de l'impulsion B : joueur actif Talon, actif :  ; mvt : Surprise, Hunter, Shadow
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TALON.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.B.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.B.toString(), report.currentImpulse);
 	Assert.assertEquals(0, report.canActShips.size());
 	Assert.assertTrue(report.mustMoveShips.contains(indShips.get("Talon FF Surprise")));
 	Assert.assertTrue(report.mustMoveShips.contains(indShips.get("Talon DD Hunter")));
@@ -93,7 +93,7 @@ public class SessionManagerIntegTest
 	//on passe au second tour de l'impulsion B : joueur actif Terran, actif : Thor ; mvt : Thor, Caleb
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TERRAN.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.B.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.B.toString(), report.currentImpulse);
 	Assert.assertTrue(report.canActShips.contains(indShips.get("Terran CL Thor")));
 	Assert.assertEquals(1, report.canActShips.size());
 	Assert.assertTrue(report.mustMoveShips.contains(indShips.get("Terran CL Thor")));
@@ -103,7 +103,7 @@ public class SessionManagerIntegTest
 	//impulsion C tour 1: joueur actif Talon, actif : Surprise ; mvt : Personne
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TALON.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.C.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.C.toString(), report.currentImpulse);
 	Assert.assertTrue(report.canActShips.contains(indShips.get("Talon FF Surprise")));
 	Assert.assertEquals(1, report.canActShips.size());
 	Assert.assertEquals(0, report.mustMoveShips.size());
@@ -111,7 +111,7 @@ public class SessionManagerIntegTest
 	//impulsion C tour 2 : joueur actif Terran, actif :  ; mvt : Caleb
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TERRAN.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.C.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.C.toString(), report.currentImpulse);
 	Assert.assertTrue(report.canActShips.contains(indShips.get("Terran DD Caleb")));
 	Assert.assertEquals(1, report.canActShips.size());
 	Assert.assertEquals(0, report.mustMoveShips.size());
@@ -119,7 +119,7 @@ public class SessionManagerIntegTest
 	//impulsion D tour 1 : joueur actif Talon, actif : ; mvt : Surprise, Hunter, Shadow
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TALON.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.D.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.D.toString(), report.currentImpulse);
 	Assert.assertEquals(0, report.canActShips.size());
 	Assert.assertTrue(report.mustMoveShips.contains(indShips.get("Talon FF Surprise")));
 	Assert.assertTrue(report.mustMoveShips.contains(indShips.get("Talon DD Hunter")));
@@ -129,7 +129,7 @@ public class SessionManagerIntegTest
 	//impulsion D tour 2 : joueur actif Terran, actif : Thor ; mvt : Thor
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TERRAN.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.D.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.D.toString(), report.currentImpulse);
 	Assert.assertTrue(report.canActShips.contains(indShips.get("Terran CL Thor")));
 	Assert.assertEquals(1, report.canActShips.size());
 	Assert.assertTrue(report.mustMoveShips.contains(indShips.get("Terran CL Thor")));
@@ -139,21 +139,21 @@ public class SessionManagerIntegTest
 	//impulsion E tour 1 : joueur actif Talon, actif :  ; mvt :
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TALON.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.E.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.E.toString(), report.currentImpulse);
 	Assert.assertEquals(0, report.canActShips.size());
 	Assert.assertEquals(0, report.mustMoveShips.size());
 
 	//impulsion E tour 2 : joueur actif Terran, actif :  ; mvt :
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TERRAN.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.E.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.E.toString(), report.currentImpulse);
 	Assert.assertEquals(0, report.canActShips.size());
 	Assert.assertEquals(0, report.mustMoveShips.size());
 
 	//impulsion F tour 1 : joueur actif Talon, actif : Surprise, Hunter, Shadow ; mvt : Surprise, Hunter, Shadow
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TALON.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.F.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.F.toString(), report.currentImpulse);
 	Assert.assertTrue(report.canActShips.contains(indShips.get("Talon FF Surprise")));
 	Assert.assertTrue(report.canActShips.contains(indShips.get("Talon DD Hunter")));
 	Assert.assertTrue(report.canActShips.contains(indShips.get("Talon DD Shadow")));
@@ -166,7 +166,7 @@ public class SessionManagerIntegTest
 	//impulsion F tour 2 : joueur actif Terran, actif : Thor, Caleb ; mvt : Thor, Caleb
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TERRAN.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.F.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.F.toString(), report.currentImpulse);
 	Assert.assertTrue(report.canActShips.contains(indShips.get("Terran CL Thor")));
 	Assert.assertTrue(report.canActShips.contains(indShips.get("Terran DD Caleb")));
 	Assert.assertEquals(2, report.canActShips.size());
@@ -177,31 +177,31 @@ public class SessionManagerIntegTest
 	//impulsion POWER tour 1 : joueur actif Talon, aucune action ni mouvement
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TALON.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.POWER.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.POWER.toString(), report.currentImpulse);
 	Assert.assertEquals(0, report.canActShips.size());
 	Assert.assertEquals(0, report.mustMoveShips.size());
 
 	//impulsion POWER tour 2 : joueur actif Terran, aucune action ni mouvement
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TERRAN.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.POWER.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.POWER.toString(), report.currentImpulse);
 	Assert.assertEquals(0, report.canActShips.size());
 	Assert.assertEquals(0, report.mustMoveShips.size());
 
 	//suite à la fin de tour on se retrouve dans les mêmes conditions qu'au tout début, on refait quelques tests jusqu'en impulsion B pour être sur
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TALON.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.A.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.A.toString(), report.currentImpulse);
 	Assert.assertEquals(0, report.canActShips.size());
 	Assert.assertEquals(0, report.mustMoveShips.size());
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TERRAN.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.A.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.A.toString(), report.currentImpulse);
 	Assert.assertEquals(0, report.canActShips.size());
 	Assert.assertEquals(0, report.mustMoveShips.size());
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TALON.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.B.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.B.toString(), report.currentImpulse);
 	Assert.assertEquals(0, report.canActShips.size());
 	Assert.assertTrue(report.mustMoveShips.contains(indShips.get("Talon FF Surprise")));
 	Assert.assertTrue(report.mustMoveShips.contains(indShips.get("Talon DD Hunter")));
@@ -209,7 +209,7 @@ public class SessionManagerIntegTest
 	Assert.assertEquals(3, report.mustMoveShips.size());
 	report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TERRAN.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.B.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.B.toString(), report.currentImpulse);
 	Assert.assertTrue(report.canActShips.contains(indShips.get("Terran CL Thor")));
 	Assert.assertEquals(1, report.canActShips.size());
 	Assert.assertTrue(report.mustMoveShips.contains(indShips.get("Terran CL Thor")));
@@ -224,16 +224,16 @@ public class SessionManagerIntegTest
     public void initTestLimite()
     {
 	//advanceImpulse alors que le jeu n'est pas commencé : même effet que démarrer la partie.
-	SessionManager.ImpulseReport report = testee.advanceImpulse();
+	GameManager.ImpulseReport report = testee.advanceImpulse();
 	Assert.assertEquals(Player.TALON.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.A.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.A.toString(), report.currentImpulse);
 	Assert.assertEquals(0, report.canActShips.size());
 	Assert.assertEquals(0, report.mustMoveShips.size());
 
 	//startGame alors que le jeu est déjà démarré : aucun effet
 	report = testee.startGame();
 	Assert.assertEquals(Player.TALON.toString(), report.currentPlayer);
-	Assert.assertEquals(SessionManager.Impulse.A.toString(), report.currentImpulse);
+	Assert.assertEquals(GameManager.Impulse.A.toString(), report.currentImpulse);
 	Assert.assertEquals(0, report.canActShips.size());
 	Assert.assertEquals(0, report.mustMoveShips.size());
     }
@@ -259,7 +259,7 @@ public class SessionManagerIntegTest
 	}
 
 	//Surprise active, elle peut donc avancer
-	SessionManager.ImpulseReport report = testee.moveShipStraight(shipTestId);
+	GameManager.ImpulseReport report = testee.moveShipStraight(shipTestId);
 	MapObject.HexCoordinates coordTest = shipTest.getCoordinates();
 	MapObject.HexCoordinates coordExpected = new MapObject.HexCoordinates(9, 11, MapObject.Orientation.NE);
 	Assert.assertEquals(coordExpected, coordTest);

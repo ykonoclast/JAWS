@@ -16,13 +16,17 @@
  */
 package org.duckdns.spacedock.jaws.control;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.duckdns.spacedock.jaws.control.GameManager.Player;
 import org.duckdns.spacedock.jaws.model.MapObject;
 import org.duckdns.spacedock.jaws.model.Ship;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,9 +41,17 @@ public class SessionManagerIntegTest
     private GameManager testee;
 
     @Before
-    public void setUpForEach() throws FileNotFoundException
+    public void setUpForEach() throws FileNotFoundException, URISyntaxException, ClassNotFoundException, SQLException
     {
 	testee = new GameManager("scenar2");
+    }
+
+    @AfterClass
+    public static void cleanUpAtTheEnd() throws URISyntaxException
+    {
+	File root = new File(SessionDao.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+	File fullPath = new File(root.getAbsoluteFile().getParent() + "/jaws-data.db");
+	fullPath.delete();
     }
 
     /**
@@ -239,7 +251,7 @@ public class SessionManagerIntegTest
     }
 
     @Test
-    public void moveTestNominal()
+    public void moveTest() throws SQLException
     {
 	testee.startGame();
 	testee.advanceImpulse();
@@ -280,6 +292,12 @@ public class SessionManagerIntegTest
 		shipTest = ship;
 	    }
 	}
+
+	//Caleb actif, on effectue un virage illégal qui sera ignoré et il restera donc actif derrière
+	testee.turnShip(shipTestId, MapObject.Orientation.NE);
+	coordTest = shipTest.getCoordinates();
+	coordExpected = new MapObject.HexCoordinates(0, 8, MapObject.Orientation.SW);
+	Assert.assertEquals(coordExpected, coordTest);
 	//Caleb actif, on le fait tourner
 	report = testee.turnShip(shipTestId, MapObject.Orientation.SE);
 	coordTest = shipTest.getCoordinates();

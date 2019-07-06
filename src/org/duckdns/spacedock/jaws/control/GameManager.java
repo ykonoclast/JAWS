@@ -17,6 +17,8 @@
 package org.duckdns.spacedock.jaws.control;
 
 import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -25,9 +27,7 @@ import org.duckdns.spacedock.jaws.model.MapObject;
 import org.duckdns.spacedock.jaws.model.Ship;
 import org.duckdns.spacedock.jaws.model.Ship.PowerCurve;
 
-
 //TODO général : remplacer toutes les émissions d'objets métiers par des strings ou des id, beaucoup trop de couplage en l'état avec la partie web
-
 /**
  * classe gérant les opérations relatives à la partie en cours : initialisation,
  * gestion des tours, des vaisseaux en jeu et interface entre l'UI et les objets
@@ -67,6 +67,11 @@ public class GameManager
     private Impulse m_currentImpulse;
 
     /**
+     * tour actuel de jeu
+     */
+    private int m_currentTurn = 1;//TODO tester qu'il est incrémenté correctement
+
+    /**
      * vrai si l'on est en train de jouer le tour du premier joueur dans
      * l'impulsion actuelle
      */
@@ -94,9 +99,9 @@ public class GameManager
      * référence
      * @throws FileNotFoundException
      */
-    public GameManager(String p_Scenario) throws FileNotFoundException
+    public GameManager(String p_Scenario) throws FileNotFoundException, URISyntaxException, ClassNotFoundException, SQLException
     {
-	m_sessionDao = SessionDao.getInstance();
+	m_sessionDao = SessionDao.getInstance();//on rebalance pas mal d'exceptions depuis ici, voir si on les traite à ce niveau (avec log simple du coup) où dams la partie web (avec un message d'erreur à afficher?)
 	List<Ship> listTalonShips = new ArrayList<>();
 	List<Ship> listTerranShips = new ArrayList<>();
 
@@ -125,7 +130,7 @@ public class GameManager
 	//TODO vérifier que tous les mouvements ont été exécutés
 	//TODO tracker où l'on en est du phasage interne au tour : actions, mouvements, tirs sauf pour la power phase
 	//TODO pour tous les ordres vérfiier que le phasing est conforme
-
+	//TODO tester le passage des tours : pas fait pour l'instant
 	ImpulseReport result;
 
 	if (m_gameStarted)
@@ -133,6 +138,10 @@ public class GameManager
 	    if (!m_firstPlayerTurn)
 	    {//on était au tour du second joueur, il faut donc changer l'impulsion en plus de changer de joueur
 		m_currentImpulse = m_currentImpulse.next();
+		if (m_currentImpulse.equals(Impulse.A))
+		{
+		    m_currentTurn++;//on est en impulsion A : on change donc de tour
+		}
 	    }
 	    m_firstPlayerTurn = !m_firstPlayerTurn;
 	    m_currentPlayer = m_currentPlayer.next();//TODO à terme il faudra gérer le changement d'initiative par les actions
@@ -188,7 +197,7 @@ public class GameManager
      */
     private ImpulseReport updateImpulseReport()
     {
-	return new ImpulseReport(m_currentPlayer.toString(), m_canActShips, m_mustMoveShips, m_currentImpulse.toString());
+	return new ImpulseReport(m_currentPlayer.toString(), m_canActShips, m_mustMoveShips, m_currentImpulse.toString(), m_currentTurn);
     }
 
     /**
@@ -196,13 +205,13 @@ public class GameManager
      *
      * @param p_shipId
      */
-    public ImpulseReport moveShipStraight(int p_shipId)
+    public ImpulseReport moveShipStraight(int p_shipId) throws SQLException
     {
 	Ship ship = getShipToMove(p_shipId);
 	if (ship != null)
 	{
 	    ship.moveStraight();
-            m_mustMoveShips.remove(Integer.valueOf(p_shipId));//le vaisseau ne peut plus bouger
+	    finishMove(ship);
 	}
 
 	return updateImpulseReport();
@@ -214,16 +223,16 @@ public class GameManager
      * @param p_shipId
      * @param p_orientation
      */
-    public ImpulseReport turnShip(int p_shipId, MapObject.Orientation p_orientation)//TODO : remplacer parun paramétre string pour indépendance du métier peut être
-    {
+    public ImpulseReport turnShip(int p_shipId, MapObject.Orientation p_orientation) throws SQLException//TODO : remplacer parun paramétre string pour indépendance du métier peut être
+    {//TODO voir pour gérer la SQLException : ici en log ou plus haut avec un message d'erreur
 	Ship ship = getShipToMove(p_shipId);
 	if (ship != null)
 	{
-	    if(ship.canTurn(p_orientation))
-            {
-                ship.turn(p_orientation);
-                m_mustMoveShips.remove(Integer.valueOf(p_shipId));//le vaisseau ne peut plus bouger}
-            }
+	    if (ship.canTurn(p_orientation))
+	    {
+		ship.turn(p_orientation);
+		finishMove(ship);
+	    }
 	}
 	return updateImpulseReport();
     }
@@ -247,15 +256,21 @@ public class GameManager
 		    result = ship;
 		}
 	    }
-	    
+
 	}//TODO faire quelque sinon ou juste ignorer l'ordre illégal?
 	return result;
     }
 
+    private void finishMove(Ship p_ship) throws SQLException
+    {
+	m_mustMoveShips.remove(Integer.valueOf(p_ship.getId()));//le vaisseau ne peut plus bouger
+	m_sessionDao.storeMove(p_ship.getId(), m_currentTurn, m_currentImpulse, p_ship.getCoordinates());//TODO à tester : est-ce que tout est bien sauvegardé?
+    }
+
     /**
      *
-     * @return la liste de tous les vaisseaux en jeu
-     * TODO demande de trop connaitre le modèle métier, remplacer par un couple : string/id
+     * @return la liste de tous les vaisseaux en jeu TODO demande de trop
+     * connaitre le modèle métier, remplacer par un couple : string/id
      */
     public Map<Player, List<Ship>> getAllShips()
     {
@@ -291,13 +306,18 @@ public class GameManager
 	 */
 	public final String currentImpulse;
 
-	public ImpulseReport(String p_currentPlayer, List<Integer> p_canActShips, List<Integer> p_mustMoveShips, String p_currentImpulse)
+	/**
+	 * numéro du tour de jeu
+	 */
+	public final int currentTurn;
+
+	public ImpulseReport(String p_currentPlayer, List<Integer> p_canActShips, List<Integer> p_mustMoveShips, String p_currentImpulse, int p_currentTurn)
 	{
 	    currentPlayer = p_currentPlayer;
 	    canActShips = p_canActShips;
 	    mustMoveShips = p_mustMoveShips;
 	    currentImpulse = p_currentImpulse;
-
+	    currentTurn = p_currentTurn;
 	}
     }
 

@@ -6,6 +6,8 @@
 package org.duckdns.spacedock.jaws.control;
 
 import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,7 +29,7 @@ public class SessionDaoUnitTest
     private SessionDao testee;
 
     @Before
-    public void setUpforEach() throws FileNotFoundException
+    public void setUpforEach() throws FileNotFoundException, URISyntaxException, ClassNotFoundException, SQLException
     {
 	testee = SessionDao.getInstance();
     }

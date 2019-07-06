@@ -16,7 +16,13 @@
  */
 package org.duckdns.spacedock.jaws.control;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -56,9 +62,24 @@ class SessionDao
     private final GeneralFileHandler m_handler;
 
     /**
+     * url de la base SQLite
+     */
+    private final String m_urlBase;
+
+    /**
+     * nom du fichier de base de données
+     */
+    private final String m_databaseFileName = "jaws-data.db";//TODO à passer en paramétre plutôt qu'en dur comme ici
+
+    /**
+     * répertoire dans lequel se trouve la base
+     */
+    private final File m_databaseRoot;//TODO à passer en paramétre plutôt qu'en dur comme ici
+
+    /**
      * constructeur privé pour éviter trop d'instanciations
      */
-    private SessionDao() throws FileNotFoundException
+    private SessionDao() throws FileNotFoundException, URISyntaxException, ClassNotFoundException, SQLException
     {
 	m_handler = GeneralFileHandler.getInstance("org.duckdns.spacedock.jaws");
 
@@ -108,6 +129,15 @@ class SessionDao
 	    }
 
 	});
+
+	//on ouvre la connexion à la base
+	Class.forName("org.sqlite.JDBC");
+	m_databaseRoot = new File(SessionDao.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+	m_urlBase = "jdbc:sqlite:" + m_databaseRoot.getAbsoluteFile().getParent() + "/" + m_databaseFileName;
+
+	//création des tables si elles n'existent pas
+	String sql = "CREATE TABLE IF NOT EXISTS moves (id integer,turn integer,impulse text,mvt text NOT NULL,PRIMARY KEY(id, turn, impulse));";
+	executeSQLStatement(sql);
     }
 
     /**
@@ -115,7 +145,7 @@ class SessionDao
      *
      * @return
      */
-    static SessionDao getInstance() throws FileNotFoundException
+    static SessionDao getInstance() throws FileNotFoundException, URISyntaxException, ClassNotFoundException, SQLException
     {
 	SessionDao result;
 	if (m_instance == null)
@@ -200,6 +230,29 @@ class SessionDao
 		orientation = MapObject.Orientation.NE;//tolérance aux erreurs : si l'orientation n'est pas une chaîne conforme, le vaisseau pointe au NE
 	}
 	return new Ship(type, name, new MapObject.HexCoordinates(posL, posC, orientation));
+    }
+
+    private void executeSQLStatement(String p_SQLCode) throws SQLException
+    {
+	//try with resources pour tout fermer automatiquement si ça part mal
+	try (Connection conn = DriverManager.getConnection(m_urlBase);
+		Statement stmt = conn.createStatement())
+	{
+	    if (conn != null)
+	    {
+		stmt.execute(p_SQLCode);
+	    }
+	}
+	catch (SQLException e)
+	{
+	    throw e;//on renvoie juste l'exception : à voir si plus haut on souhaite afficher ou juste logger
+	}
+    }
+
+    void storeMove(int p_idShip, int p_turn, Impulse p_impulse, MapObject.HexCoordinates p_coord) throws SQLException
+    {
+	String sql = "INSERT INTO moves VALUES (" + p_idShip + "," + p_turn + "," + "\"" + p_impulse.toString() + "\"" + "," + "\"" + p_coord.toString() + "\"" + ");";
+	executeSQLStatement(sql);
     }
 
     /**
